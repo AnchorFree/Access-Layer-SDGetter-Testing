@@ -1,0 +1,100 @@
+#!/usr/bin/python
+
+from subprocess import call, Popen, PIPE
+
+
+# getting result for key using consul
+def get_consul_result(key):
+    try:
+        cmd = "consul kv get http://consul.afdevops.com/v1/kv/sd_qa/" + key
+        process = Popen(cmd, shell=False, stdout=PIPE)
+        result = process.communicate()
+        return result[0]
+    except:
+        return None
+
+
+def test_the_exact_match():
+    consul_key = 'a/b/c'
+    exp_res = '{"value": {"a": "abc"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_the_exact_match(): pass'
+    else:
+        print 'test_the_exact_match() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_simple_not_regex():
+    consul_key = 'a/b/_!c_'
+    exp_res = '{"value":{"a": "abd"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_simple_not_regex(): pass'
+    else:
+        print 'test_simple_not_regex() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_simple_regex():
+    consul_key = 'a/b/_f_'
+    exp_res = '{"value":{"a": “abf”}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_simple_regex(): pass'
+    else:
+        print 'test_simple_regex() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_simple_OR_regex():
+    consul_key = 'a/b/_e|g_'
+    exp_res = '{"value":{"a": “abe”}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_simple_OR_regex(): pass'
+    else:
+        print 'test_simple_OR_regex() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_simple_all_regex():
+    consul_key = 'a/_all_/h'
+    exp_res = '{"value":{"a": “abh”}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_simple_all_regex(): pass'
+    else:
+        print 'test_simple_all_regex() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_the_short_key():
+    consul_key = 'aa'
+    exp_res = '{"value":{"aa": "aabc"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_the_short_key(): pass'
+    else:
+        print 'test_the_short_key() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_complex_regex_match():
+    consul_key = 'aa/_("d","~")_/c'
+    exp_res = '{"value":{"aa": "aadc"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_complex_regex_match(): pass'
+    else:
+        print 'test_complex_regex_match() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_complex_not_regex_match():
+    consul_key = 'aa/_("d","!~")_/c'
+    exp_res = '{"value":{"aa": "aafc"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_complex_not_regex_match(): pass'
+    else:
+        print 'test_complex_not_regex_match() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+def test_complex_regex_number_match():
+    consul_key = 'bb/_("[1]","~")_/c'
+    exp_res = '{"value":{"bb": "bb1c"}}'
+    act_res = get_consul_result(consul_key)
+    if act_res == exp_res:
+        print 'test_complex_regex_number_match(): pass'
+    else:
+        print 'test_complex_regex_number_match() failed. Expected result: ' + exp_res + '. Actual result: ' + str(act_res)
+
+
+
+test_the_exact_match()
